@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metas de Esforço</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F5F5F0;min-height:100vh;color:#1A1A2E}
+.header{background:#1A1A2E;padding:20px 32px;display:flex;align-items:center;gap:16px}
+.logo-dot{width:32px;height:32px;background:#C8FF3E;border-radius:50%}
+.header h1{color:#fff;font-size:18px;font-weight:600;letter-spacing:-0.3px}
+.header span{color:#C8FF3E;font-size:13px;font-weight:500;margin-left:auto}
+.container{max-width:960px;margin:0 auto;padding:32px 24px}
+.step{display:none}.step.active{display:block}
+.card{background:#fff;border-radius:16px;border:1px solid #E8E8E0;padding:28px;margin-bottom:20px}
+.card-title{font-size:11px;font-weight:600;color:#999;margin-bottom:16px;text-transform:uppercase;letter-spacing:0.8px}
+.select-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-label{font-size:13px;color:#666;margin-bottom:6px;font-weight:500}
+select,input[type=number]{width:100%;padding:10px 14px;border:1.5px solid #E0E0D8;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:#1A1A2E;background:#fff;appearance:none;-webkit-appearance:none;outline:none;transition:border-color .2s}
+select:focus,input[type=number]:focus{border-color:#1A1A2E}
+.btn-primary{background:#1A1A2E;color:#C8FF3E;border:none;padding:12px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;transition:opacity .2s}
+.btn-primary:hover{opacity:0.88}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed}
+.btn-secondary{background:transparent;color:#1A1A2E;border:1.5px solid #1A1A2E;padding:10px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-secondary:hover{background:#f0f0ea}
+.coord-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:4px}
+.coord-card{background:#F5F5F0;border:1.5px solid #E0E0D8;border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;text-align:center}
+.coord-card:hover{border-color:#1A1A2E;background:#EEEEE8}
+.coord-card.selected{border-color:#1A1A2E;background:#1A1A2E;color:#C8FF3E}
+.coord-name{font-size:13px;font-weight:600}
+.coord-sub{font-size:11px;margin-top:4px;color:#999}
+.coord-card.selected .coord-sub{color:#9FFF6E;opacity:0.8}
+.table-wrap{overflow-x:auto;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:#F5F5F0;color:#888;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #E8E8E0;white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid #F0F0E8;vertical-align:middle}
+td input[type=number]{border:1.5px solid #E8E8E0;padding:7px 10px;border-radius:8px;font-size:13px;text-align:center;width:84px}
+td input[type=number]:focus{border-color:#1A1A2E}
+.v-name{font-weight:500;color:#1A1A2E;font-size:13px;white-space:nowrap}
+.badge{display:inline-block;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge.sp{background:#E8F0FF;color:#1A4BB5}
+.badge.rj{background:#FFF0E8;color:#B54A1A}
+.badge.mg{background:#E8FFE8;color:#1A7B1A}
+.asa-text{font-size:12px;color:#666;white-space:nowrap}
+.info-bar{background:#EEF7FF;border:1px solid #C0DEFA;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#1A4BB5;font-weight:500}
+.actions{display:flex;gap:12px;align-items:center;margin-top:20px}
+.actions .btn-primary{width:auto;flex:1}
+.success-icon{width:56px;height:56px;background:#C8FF3E;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px}
+.text-center{text-align:center}
+.progress{display:flex;gap:8px;margin-bottom:28px}
+.ps{height:4px;flex:1;background:#E0E0D8;border-radius:4px;transition:background .3s}
+.ps.done{background:#1A1A2E}.ps.active{background:#C8FF3E}
+.loading-overlay{position:fixed;inset:0;background:rgba(26,26,46,0.55);display:flex;align-items:center;justify-content:center;z-index:999}
+.loading-box{background:#fff;border-radius:16px;padding:32px 40px;text-align:center}
+.loading-box p{margin-top:12px;font-size:14px;color:#666}
+.spinner{width:36px;height:36px;border:3px solid #E0E0D8;border-top-color:#C8FF3E;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-bar{background:#FFF0EE;border:1px solid #FFBCB0;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#B54A1A;font-weight:500;display:none}
+.competencia-badge{display:inline-flex;align-items:center;gap:8px;background:#1A1A2E;color:#C8FF3E;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;margin-bottom:20px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-dot"></div>
+  <h1>Metas de Esforço</h1>
+  <span>Gabriel Tecnologia</span>
+</div>
+
+<div id="loadingOverlay" class="loading-overlay" style="display:none">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <p id="loadingMsg">Salvando metas...</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="progress">
+    <div class="ps active" id="p1"></div>
+    <div class="ps" id="p2"></div>
+    <div class="ps" id="p3"></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step active" id="step1">
+    <div class="card">
+      <div class="card-title">Selecione seu nome</div>
+      <div class="coord-grid" id="coordGrid"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Competência</div>
+      <p style="font-size:13px;color:#888;margin-bottom:16px">Selecione o mês para o qual as metas se referem.</p>
+      <div class="select-grid">
+        <div>
+          <div class="field-label">Mês</div>
+          <select id="mesSelect">
+            <option value="">Selecione o mês</option>
+            <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+            <option value="3">Março</option><option value="4">Abril</option>
+            <option value="5">Maio</option><option value="6">Junho</option>
+            <option value="7">Julho</option><option value="8">Agosto</option>
+            <option value="9">Setembro</option><option value="10">Outubro</option>
+            <option value="11">Novembro</option><option value="12">Dezembro</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Ano</div>
+          <select id="anoSelect">
+            <option>2025</option><option selected>2026</option><option>2027</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" id="btnStep1" disabled onclick="goStep2()">Continuar →</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div class="info-bar" id="infoBar"></div>
+    <div id="errorBar" class="error-bar"></div>
+    <div class="card">
+      <div class="card-title">Metas mensais por vendedor</div>
+      <p style="font-size:12px;color:#999;margin-bottom:16px">Informe a meta total do mês. O valor será dividido automaticamente pelos dias úteis.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Executivo</th>
+              <th>Asa</th>
+              <th>UF</th>
+              <th style="text-align:center">Leads</th>
+              <th style="text-align:center">Leads Qualif.</th>
+              <th style="text-align:center">Propostas</th>
+              <th style="text-align:center">Vendas</th>
+            </tr>
+          </thead>
+          <tbody id="metasBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-secondary" onclick="goStep1()">← Voltar</button>
+      <button class="btn-primary" id="btnSalvar" onclick="salvarMetas()">Salvar e enviar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step3">
+    <div class="card text-center" style="padding:40px 28px">
+      <div class="success-icon">✓</div>
+      <h2 style="font-size:20px;font-weight:600;margin-bottom:8px">Metas enviadas!</h2>
+      <p style="color:#666;font-size:14px;margin-bottom:8px" id="successMsg"></p>
+      <p style="color:#999;font-size:12px;margin-bottom:24px">Os dados foram salvos e serão processados automaticamente.</p>
+      <button class="btn-secondary" onclick="goStep1()">Lançar outro mês</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIGURAÇÃO ───────────────────────────────────────────
+// Substitua pela URL do webhook do N8N quando tiver
+const WEBHOOK_URL = "https://n8n.gabriel.com.br/webhook-test/receber-metas-app";
+
+// Substitua pelo ID da sua planilha Google Sheets
+// Formato esperado: planilha com aba "Controle Preenchimento"
+// Colunas: Coordenador | Competência | Timestamp
+const SHEETS_WEBHOOK = "https://n8n.gabriel.com.br/webhook/confirmar-preenchimento";
+
+// ─── DADOS ──────────────────────────────────────────────────
+const DATA = [
+  {exec:"Andressa Menezes",asa:"SP - Amarela",coord:"Ricardo Guarrilha",estado:"SP"},
+  {exec:"David Gonçalves",asa:"SP - Amarela",coord:"Ricardo Guarrilha",estado:"SP"},
+  {exec:"João Pedro Mode",asa:"SP - Amarela",coord:"Ricardo Guarrilha",estado:"SP"},
+  {exec:"Leonardo Bokel",asa:"SP - Amarela",coord:"Ricardo Guarrilha",estado:"SP"},
+  {exec:"Murilo Govea",asa:"SP - Amarela",coord:"Ricardo Guarrilha",estado:"SP"},
+  {exec:"Samuel Ribeiro",asa:"SP - Amarela",coord:"Ricardo Guarrilha",estado:"SP"},
+  {exec:"Gustavo de Paula",asa:"SP - Azul",coord:"Nelson Alves",estado:"SP"},
+  {exec:"Rafael Tardiolli",asa:"SP - Azul",coord:"Nelson Alves",estado:"SP"},
+  {exec:"Thamiris Roman",asa:"SP - Azul",coord:"Nelson Alves",estado:"SP"},
+  {exec:"Vinicius Mota",asa:"SP - Azul",coord:"Nelson Alves",estado:"SP"},
+  {exec:"Daniel Goldenberg",asa:"SP - Lilás",coord:"Sacha Jagoda",estado:"SP"},
+  {exec:"Fabio Gil",asa:"SP - Lilás",coord:"Sacha Jagoda",estado:"SP"},
+  {exec:"Mariana Oliveira",asa:"SP - Lilás",coord:"Sacha Jagoda",estado:"SP"},
+  {exec:"Natalia Toscano",asa:"SP - Lilás",coord:"Sacha Jagoda",estado:"SP"},
+  {exec:"Rodrigo Peres",asa:"SP - Lilás",coord:"Sacha Jagoda",estado:"SP"},
+  {exec:"Eduardo Domingues",asa:"SP - Verde",coord:"Bernardo Soares",estado:"SP"},
+  {exec:"Giovanna Badini",asa:"SP - Verde",coord:"Bernardo Soares",estado:"SP"},
+  {exec:"Juliane Pereira",asa:"SP - Verde",coord:"Bernardo Soares",estado:"SP"},
+  {exec:"Pedro Porto",asa:"SP - Verde",coord:"Bernardo Soares",estado:"SP"},
+  {exec:"Rafaela Mattos",asa:"SP - Verde",coord:"Bernardo Soares",estado:"SP"},
+  {exec:"Ricardo Guimarães",asa:"SP - Verde",coord:"Bernardo Soares",estado:"SP"},
+  {exec:"Leticia Souza",asa:"RJ - Norte",coord:"Felipe Menezes",estado:"RJ"},
+  {exec:"Raphaella Pestana",asa:"RJ - Norte",coord:"Felipe Menezes",estado:"RJ"},
+  {exec:"Romulo Giupponi",asa:"RJ - Norte",coord:"Felipe Menezes",estado:"RJ"},
+  {exec:"Cayo Martins",asa:"RJ - Sul",coord:"Juliana Barreto",estado:"RJ"},
+  {exec:"Giulia Ferreira",asa:"RJ - Sul",coord:"Juliana Barreto",estado:"RJ"},
+  {exec:"Luan Silva",asa:"RJ - Sul",coord:"Juliana Barreto",estado:"RJ"},
+  {exec:"Pablo Oliveira",asa:"RJ - Sul",coord:"Juliana Barreto",estado:"RJ"},
+  {exec:"Rosimere Santos",asa:"RJ - Sul",coord:"Juliana Barreto",estado:"RJ"},
+  {exec:"Gustavo Silva",asa:"RJ - Oeste",coord:"Caio Santos",estado:"RJ"},
+  {exec:"Jaqueline Maia",asa:"RJ - Oeste",coord:"Caio Santos",estado:"RJ"},
+  {exec:"Pedro Bittencourt",asa:"RJ - Oeste",coord:"Caio Santos",estado:"RJ"},
+  {exec:"Ramom Fraga",asa:"RJ - Oeste",coord:"Caio Santos",estado:"RJ"},
+  {exec:"Paulo Wione",asa:"MG - Centro",coord:"Rodrigo Moura",estado:"MG"},
+  {exec:"João Barroso",asa:"MG - Centro",coord:"Rodrigo Moura",estado:"MG"},
+  {exec:"Lauro Costa",asa:"MG - Centro",coord:"Rodrigo Moura",estado:"MG"},
+  {exec:"Allyson Soares",asa:"MG - Centro",coord:"Rodrigo Moura",estado:"MG"},
+  {exec:"Danilo Gaieta",asa:"SP - Branca",coord:"Pedro Zillete",estado:"SP"},
+  {exec:"Felippi Moura",asa:"SP - Branca",coord:"Pedro Zillete",estado:"SP"},
+  {exec:"Jorge Augusto",asa:"SP - Branca",coord:"Pedro Zillete",estado:"SP"},
+  {exec:"Julia Milagres",asa:"SP - Branca",coord:"Pedro Zillete",estado:"SP"},
+  {exec:"Pamela Brito",asa:"SP - Branca",coord:"Pedro Zillete",estado:"SP"},
+];
+
+// Dias úteis por estado e mês (1=Jan ... 12=Dez) conforme tabela
+const DIAS_UTEIS = {
+  SP: {1:17,2:17,3:22,4:20,5:20,6:21,7:22,8:21,9:21,10:21,11:23,12:14},
+  RJ: {1:17,2:17,3:22,4:19,5:20,6:21,7:23,8:21,9:21,10:21,11:19,12:14},
+  MG: {1:17,2:17,3:22,4:20,5:20,6:21,7:23,8:23,9:21,10:21,11:19,12:14},
+};
+
+const MESES_NOME = ["","Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const COORDS = [...new Set(DATA.map(d=>d.coord))];
+let selectedCoord = null;
+
+function initCoords(){
+  const g = document.getElementById('coordGrid');
+  g.innerHTML = COORDS.map(c=>{
+    const asa = DATA.find(d=>d.coord===c).asa;
+    return `<div class="coord-card" onclick="selectCoord('${c}',this)">
+      <div class="coord-name">${c}</div>
+      <div class="coord-sub">${asa}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectCoord(name,el){
+  selectedCoord=name;
+  document.querySelectorAll('.coord-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  checkStep1();
+}
+
+function checkStep1(){
+  document.getElementById('btnStep1').disabled=!(selectedCoord&&document.getElementById('mesSelect').value);
+}
+document.getElementById('mesSelect').addEventListener('change',checkStep1);
+
+function goStep2(){
+  const mes=parseInt(document.getElementById('mesSelect').value);
+  const ano=parseInt(document.getElementById('anoSelect').value);
+  const mesNome=MESES_NOME[mes];
+  document.getElementById('infoBar').textContent=`Coordenador: ${selectedCoord}  ·  Competência: ${mesNome} / ${ano}`;
+  const vends=DATA.filter(d=>d.coord===selectedCoord);
+  const du = DIAS_UTEIS[vends[0].estado][mes];
+  document.getElementById('metasBody').innerHTML=vends.map((v,i)=>`
+    <tr>
+      <td><span class="v-name">${v.exec}</span></td>
+      <td><span class="asa-text">${v.asa}</span></td>
+      <td><span class="badge ${v.estado.toLowerCase()}">${v.estado}</span></td>
+      <td><input type="number" min="0" placeholder="0" id="l_${i}"></td>
+      <td><input type="number" min="0" placeholder="0" id="lq_${i}"></td>
+      <td><input type="number" min="0" placeholder="0" id="p_${i}"></td>
+      <td><input type="number" min="0" placeholder="0" id="v_${i}"></td>
+    </tr>`).join('');
+  hideError();
+  show('step2','p2');
+}
+
+async function salvarMetas(){
+  const mes=parseInt(document.getElementById('mesSelect').value);
+  const ano=parseInt(document.getElementById('anoSelect').value);
+  const mesNome=MESES_NOME[mes];
+  const vends=DATA.filter(d=>d.coord===selectedCoord);
+
+  const linhas = vends.map((v,i)=>({
+    coordenador: selectedCoord,
+    executivo: v.exec,
+    asa: v.asa,
+    cidade: v.estado,
+    estado: v.estado,
+    competencia_mes: mes,
+    competencia_ano: ano,
+    competencia_label: `${mesNome}/${ano}`,
+    leads: parseInt(document.getElementById(`l_${i}`).value)||0,
+    leads_qualificados: parseInt(document.getElementById(`lq_${i}`).value)||0,
+    propostas: parseInt(document.getElementById(`p_${i}`).value)||0,
+    vendas: parseInt(document.getElementById(`v_${i}`).value)||0,
+    dias_uteis: DIAS_UTEIS[v.estado][mes],
+    origem: "Vendas",
+  }));
+
+  setLoading(true,"Salvando metas...");
+  document.getElementById('btnSalvar').disabled=true;
+  hideError();
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        coordenador: selectedCoord,
+        competencia: `${mesNome}/${ano}`,
+        competencia_mes: mes,
+        competencia_ano: ano,
+        timestamp: new Date().toISOString(),
+        linhas
+      })
+    });
+
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    setLoading(false);
+    document.getElementById('successMsg').textContent=`${vends.length} vendedores · ${mesNome}/${ano}`;
+    show('step3','p3');
+  } catch(e){
+    setLoading(false);
+    document.getElementById('btnSalvar').disabled=false;
+    showError("Erro ao enviar. Verifique sua conexão e tente novamente.");
+  }
+}
+
+function goStep1(){show('step1','p1');}
+
+function show(sid,pid){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(sid).classList.add('active');
+  ['p1','p2','p3'].forEach((p,i)=>{
+    const steps=['step1','step2','step3'];
+    const cur=steps.indexOf(sid);
+    document.getElementById(p).className='ps'+(i<cur?' done':i===cur?' active':'');
+  });
+}
+
+function setLoading(on,msg=''){
+  document.getElementById('loadingOverlay').style.display=on?'flex':'none';
+  if(msg) document.getElementById('loadingMsg').textContent=msg;
+}
+
+function showError(msg){
+  const el=document.getElementById('errorBar');
+  el.textContent=msg; el.style.display='block';
+}
+function hideError(){
+  document.getElementById('errorBar').style.display='none';
+}
+
+initCoords();
+</script>
+</body>
+</html>
