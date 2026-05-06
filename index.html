@@ -160,7 +160,7 @@ td input[type=number]:focus{border-color:#1A1A2E}
 
 <script>
 // ─── CONFIGURAÇÃO ───────────────────────────────────────────
-const WEBHOOK_URL = "https://script.google.com/a/macros/gabriel.com.br/s/AKfycbx7x0_6Dk7kP1fj-alSYSVM9fm47Jkb_4IgQrtvS2LWlTaC3lKmNG4e5P7qJCLwj6kD2g/exec";
+const WEBHOOK_URL = "https://script.google.com/a/macros/gabriel.com.br/s/AKfycbxApcze6lw8UhU3gvrz1358AMZ0GQf3SMnBK5CnuKDq5Pii3bECOuFrSj4cX4_FHJaBCQ/exec";
 
 // ─── DADOS ──────────────────────────────────────────────────
 const DATA = [
@@ -328,11 +328,10 @@ async function salvarMetas(){
   hideError();
 
   try {
-    const res=await fetch(WEBHOOK_URL,{
-      method:"POST",
-      mode:"no-cors",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({linhas})
+    const payload=encodeURIComponent(JSON.stringify({linhas}));
+    const res=await fetch(`${WEBHOOK_URL}?payload=${payload}`,{
+      method:"GET",
+      mode:"no-cors"
     });
 
     setLoading(false);
