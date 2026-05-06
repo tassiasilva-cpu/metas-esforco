@@ -160,13 +160,7 @@ td input[type=number]:focus{border-color:#1A1A2E}
 
 <script>
 // ─── CONFIGURAÇÃO ───────────────────────────────────────────
-// Substitua pela URL do webhook do N8N quando tiver
-const WEBHOOK_URL = "https://n8n.gabriel.com.br/webhook-test/receber-metas-app";
-
-// Substitua pelo ID da sua planilha Google Sheets
-// Formato esperado: planilha com aba "Controle Preenchimento"
-// Colunas: Coordenador | Competência | Timestamp
-const SHEETS_WEBHOOK = "https://n8n.gabriel.com.br/webhook/confirmar-preenchimento";
+const WEBHOOK_URL = "https://script.google.com/a/macros/gabriel.com.br/s/AKfycbxMPNOSzWtEvBc6lxL6ZSeSIOFYXQv4h6UXgDrTYPmJBS1SLU2gx-cGddmshtYux6ML/exec";
 
 // ─── DADOS ──────────────────────────────────────────────────
 const DATA = [
@@ -269,48 +263,74 @@ function goStep2(){
   show('step2','p2');
 }
 
+const FERIADOS=['01/01','21/04','01/05','07/09','12/10','02/11','15/11','25/12'];
+function isDiaUtil(date){
+  const d=date.getDay();
+  if(d===0||d===6) return false;
+  const ddmm=date.toLocaleDateString('pt-BR').substring(0,5);
+  return !FERIADOS.includes(ddmm);
+}
+function getDiasDoMes(mes,ano){
+  const dias=[];
+  const total=new Date(ano,mes,0).getDate();
+  for(let d=1;d<=total;d++){
+    const date=new Date(ano,mes-1,d);
+    dias.push({dataStr:date.toLocaleDateString('pt-BR'),dia:d,util:isDiaUtil(date)});
+  }
+  return dias;
+}
+
 async function salvarMetas(){
   const mes=parseInt(document.getElementById('mesSelect').value);
   const ano=parseInt(document.getElementById('anoSelect').value);
   const mesNome=MESES_NOME[mes];
   const vends=DATA.filter(d=>d.coord===selectedCoord);
+  const diasMes=getDiasDoMes(mes,ano);
+  const totalUteis=diasMes.filter(d=>d.util).length;
 
-  const linhas = vends.map((v,i)=>({
-    coordenador: selectedCoord,
-    executivo: v.exec,
-    asa: v.asa,
-    cidade: v.estado,
-    estado: v.estado,
-    competencia_mes: mes,
-    competencia_ano: ano,
-    competencia_label: `${mesNome}/${ano}`,
-    leads: parseInt(document.getElementById(`l_${i}`).value)||0,
-    leads_qualificados: parseInt(document.getElementById(`lq_${i}`).value)||0,
-    propostas: parseInt(document.getElementById(`p_${i}`).value)||0,
-    vendas: parseInt(document.getElementById(`v_${i}`).value)||0,
-    dias_uteis: DIAS_UTEIS[v.estado][mes],
-    origem: "Vendas",
-  }));
+  const TIPOS=[
+    {campo:'l',   nome:'Leads'},
+    {campo:'lq',  nome:'Leads Qualificados'},
+    {campo:'p',   nome:'Propostas'},
+    {campo:'v',   nome:'Vendas'},
+  ];
+
+  const linhas=[];
+  vends.forEach((v,i)=>{
+    TIPOS.forEach(tipo=>{
+      const totalMes=parseInt(document.getElementById(`${tipo.campo}_${i}`).value)||0;
+      const valorDia=totalUteis>0?totalMes/totalUteis:0;
+      diasMes.forEach(dia=>{
+        const valor=dia.util?parseFloat(valorDia.toFixed(4)):0;
+        linhas.push({
+          "Nome da Meta":`${tipo.nome} - ${v.exec} - ${dia.dataStr}`,
+          "Tipo da Meta":tipo.nome,
+          "Valor da Meta":valor,
+          "Data da Meta":dia.dataStr,
+          "Cidade":v.estado,
+          "Origem":"Vendas",
+          "Executivo":v.exec,
+          "Coordenador":selectedCoord,
+          "Asa":v.asa,
+          "Dia da Meta":dia.dia,
+          "Mês da Meta":mes,
+          "Ano da Meta":ano
+        });
+      });
+    });
+  });
 
   setLoading(true,"Salvando metas...");
   document.getElementById('btnSalvar').disabled=true;
   hideError();
 
   try {
-    const res = await fetch(WEBHOOK_URL, {
+    const res=await fetch(WEBHOOK_URL,{
       method:"POST",
+      mode:"no-cors",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        coordenador: selectedCoord,
-        competencia: `${mesNome}/${ano}`,
-        competencia_mes: mes,
-        competencia_ano: ano,
-        timestamp: new Date().toISOString(),
-        linhas
-      })
+      body:JSON.stringify({linhas})
     });
-
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
     setLoading(false);
     document.getElementById('successMsg').textContent=`${vends.length} vendedores · ${mesNome}/${ano}`;
